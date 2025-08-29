@@ -35,6 +35,19 @@ def initialize_validation():
 # Initialize validation on startup
 initialize_validation()
 
+@app.route('/health', methods=['GET'])
+def health():
+    """Simple health endpoint for uptime pings"""
+    try:
+        stamp = datetime.utcnow().isoformat() + "Z"
+        status = 'OK'
+        if validation_framework:
+            hc = validation_framework.quick_health_check()
+            status = hc.get('status', 'OK')
+        return jsonify(ok=True, status=status, ts=stamp), 200
+    except Exception as e:
+        return jsonify(ok=False, error=str(e)), 200
+
 @app.route('/')
 def index():
     """Enhanced homepage with system health status"""
@@ -538,148 +551,6 @@ def calculate_enhanced_chart():
     except Exception as e:
         return f"<h1>Error in Enhanced Calculation</h1><p>{str(e)}</p><p><a href='/calculate-enhanced'>Back</a></p>"
 
-@app.route('/rectify-time', methods=['GET', 'POST'])
-def rectify_birth_time():
-    """Birth time rectification using life events"""
-    
-    if request.method == 'GET':
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Birth Time Rectification</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
-                .form-group { margin: 15px 0; }
-                label { display: block; font-weight: bold; margin-bottom: 5px; }
-                input, select, textarea { padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
-                input[type="text"], input[type="date"], input[type="time"], select { width: 200px; }
-                textarea { width: 400px; height: 100px; }
-                button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-                .event-input { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; }
-                .personality-traits { display: flex; flex-wrap: wrap; gap: 15px; }
-                .trait-checkbox { display: flex; align-items: center; gap: 5px; }
-            </style>
-        </head>
-        <body>
-            <h1>Birth Time Rectification</h1>
-            <p>Refine uncertain birth times using life events and personality analysis</p>
-            
-            <form method="POST">
-                <div class="form-group">
-                    <label>Birth Date:</label>
-                    <input type="date" name="birth_date" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Approximate Birth Time:</label>
-                    <input type="time" name="approximate_time" placeholder="e.g., 14:30">
-                    <small>Best estimate or leave blank if unknown</small>
-                </div>
-                
-                <div class="form-group">
-                    <label>Birth City:</label>
-                    <input type="text" name="birth_city" required placeholder="e.g., New York, Mumbai, London">
-                </div>
-                
-                <div class="form-group">
-                    <label>Time Window (hours):</label>
-                    <select name="time_window">
-                        <option value="2">±1 hour</option>
-                        <option value="4" selected>±2 hours</option>
-                        <option value="6">±3 hours</option>
-                        <option value="8">±4 hours</option>
-                    </select>
-                </div>
-                
-                <h3>Major Life Events (minimum 3 required)</h3>
-                
-                <div class="event-input">
-                    <h4>Event 1:</h4>
-                    <label>Date:</label>
-                    <input type="date" name="event1_date" required>
-                    <label>Type:</label>
-                    <select name="event1_type" required>
-                        <option value="">Select Event Type</option>
-                        <option value="marriage">Marriage/Partnership</option>
-                        <option value="career">Career Change/Promotion</option>
-                        <option value="education">Education/Graduation</option>
-                        <option value="children">Birth of Child</option>
-                        <option value="health">Major Health Event</option>
-                        <option value="travel">Relocation/Major Travel</option>
-                        <option value="property">Property Purchase</option>
-                        <option value="death_family">Death in Family</option>
-                        <option value="accident">Accident/Emergency</option>
-                        <option value="spiritual">Spiritual/Religious Event</option>
-                    </select>
-                    <label>Importance (1-10):</label>
-                    <input type="number" name="event1_importance" min="1" max="10" value="8">
-                </div>
-                
-                <div class="event-input">
-                    <h4>Event 2:</h4>
-                    <label>Date:</label>
-                    <input type="date" name="event2_date" required>
-                    <label>Type:</label>
-                    <select name="event2_type" required>
-                        <option value="">Select Event Type</option>
-                        <option value="marriage">Marriage/Partnership</option>
-                        <option value="career">Career Change/Promotion</option>
-                        <option value="education">Education/Graduation</option>
-                        <option value="children">Birth of Child</option>
-                        <option value="health">Major Health Event</option>
-                        <option value="travel">Relocation/Major Travel</option>
-                        <option value="property">Property Purchase</option>
-                        <option value="death_family">Death in Family</option>
-                        <option value="accident">Accident/Emergency</option>
-                        <option value="spiritual">Spiritual/Religious Event</option>
-                    </select>
-                    <label>Importance (1-10):</label>
-                    <input type="number" name="event2_importance" min="1" max="10" value="8">
-                </div>
-                
-                <div class="event-input">
-                    <h4>Event 3:</h4>
-                    <label>Date:</label>
-                    <input type="date" name="event3_date" required>
-                    <label>Type:</label>
-                    <select name="event3_type" required>
-                        <option value="">Select Event Type</option>
-                        <option value="marriage">Marriage/Partnership</option>
-                        <option value="career">Career Change/Promotion</option>
-                        <option value="education">Education/Graduation</option>
-                        <option value="children">Birth of Child</option>
-                        <option value="health">Major Health Event</option>
-                        <option value="travel">Relocation/Major Travel</option>
-                        <option value="property">Property Purchase</option>
-                        <option value="death_family">Death in Family</option>
-                        <option value="accident">Accident/Emergency</option>
-                        <option value="spiritual">Spiritual/Religious Event</option>
-                    </select>
-                    <label>Importance (1-10):</label>
-                    <input type="number" name="event3_importance" min="1" max="10" value="8">
-                </div>
-                
-                <div class="form-group">
-                    <button type="submit">Rectify Birth Time</button>
-                </div>
-            </form>
-            
-            <p><a href="/">Back to Main Calculator</a></p>
-        </body>
-        </html>
-        """)
-    
-    # Process POST request
-    if not ENHANCED_ENGINE_AVAILABLE:
-        return "Birth time rectification requires the enhanced engine."
-    
-    try:
-        return "<h1>Rectification Processing</h1><p>This feature is under development.</p><p><a href='/rectify-time'>Back</a></p>"
-        
-    except Exception as e:
-        return f"<h1>Rectification Error</h1><p>{str(e)}</p><p><a href='/rectify-time'>Back</a></p>"
-
 @app.route('/predictions', methods=['POST'])
 def get_predictions():
     """Generate predictions based on transits - FIXED ROUTE"""
@@ -707,23 +578,72 @@ def get_predictions():
 
 @app.route('/api/calculate', methods=['POST'])
 def api_calculate():
-    """Enhanced API endpoint with professional features"""
+    """Enhanced API endpoint with professional features (accepts camelCase or snake_case)"""
     try:
-        data = request.get_json()
-        birth_date = data.get('birth_date')
-        birth_time = data.get('birth_time')
-        latitude = data.get('latitude', 0)
-        longitude = data.get('longitude', 0)
-        house_system = data.get('house_system', 'placidus')
-        
-        birth_datetime_str = f"{birth_date} {birth_time}"
-        birth_datetime = datetime.strptime(birth_datetime_str, '%Y-%m-%d %H:%M')
-        
+        data = request.get_json(force=True, silent=True) or {}
+
+        # Accept both naming styles
+        birth_date = data.get('birth_date') or data.get('birthDate')
+        birth_time = data.get('birth_time') or data.get('birthTime')
+        house_system = data.get('house_system') or data.get('houseSystem') or 'placidus'
+        timezone_str = data.get('timezone') or data.get('tz') or 'UTC'
+
+        # Location: either coords or city name
+        birth_city = (data.get('birth_city') or data.get('birthPlace') or '').strip()
+        lat = data.get('latitude', data.get('lat', None))
+        lon = data.get('longitude', data.get('lon', None))
+        use_coords = data.get('useCoords', None)
+
+        if not birth_date or not birth_time:
+            return jsonify({'error': 'birth_date/birthDate and birth_time/birthTime are required'}), 400
+
+        # Build datetime (expects 'YYYY-MM-DD' and 'HH:MM' or 'HH:MM:SS')
+        bt = birth_time.strip()
+        if len(bt) == 5:  # HH:MM
+            fmt = '%Y-%m-%d %H:%M'
+        else:            # HH:MM:SS
+            fmt = '%Y-%m-%d %H:%M:%S'
+        birth_datetime = datetime.strptime(f"{birth_date} {bt}", fmt)
+
         calc = ProfessionalAstrologyEngine()
-        result = calc.calculate_professional_chart(birth_datetime, latitude, longitude, house_system)
-        
-        return jsonify(result)
-        
+
+        # Decide source of coordinates
+        lat_val = None
+        lon_val = None
+
+        # If explicit coords requested OR present, use them
+        if (use_coords is True) or (lat is not None and lon is not None):
+            try:
+                lat_val = float(lat)
+                lon_val = float(lon)
+                if not (-90.0 <= lat_val <= 90.0) or not (-180.0 <= lon_val <= 180.0):
+                    return jsonify({'error': 'lat must be -90..90 and lon must be -180..180'}), 400
+                location_name = f"{lat_val:.3f}°, {lon_val:.3f}°"
+            except Exception as e:
+                return jsonify({'error': f'invalid coordinates: {e}'}), 400
+        else:
+            # Otherwise resolve city name
+            if not birth_city or len(birth_city) < 2:
+                return jsonify({'error': 'Provide birthPlace/birth_city or lat+lon'}), 400
+            lat_val, lon_val, location_name = calc.get_coordinates_for_city(birth_city)
+            if isinstance(location_name, str) and 'coordinates needed' in location_name.lower():
+                return jsonify({'error': f"Could not find coordinates for '{birth_city}'. Try another city or provide coordinates."}), 400
+
+        # Do the professional calculation
+        result = calc.calculate_professional_chart(birth_datetime, lat_val, lon_val, house_system)
+
+        # Echo back some context (non-breaking)
+        result.update({
+            'birth_date': birth_date,
+            'birth_time': birth_time,
+            'birth_location': location_name,
+            'coordinates': f"{lat_val:.4f}, {lon_val:.4f}",
+            'timezone': timezone_str,
+            'house_system': house_system
+        })
+
+        return jsonify(result), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
