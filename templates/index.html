@@ -97,7 +97,36 @@
             font-size: 0.9rem;
             margin-top: 20px;
         }
+        
+        .toggle-link {
+            color: #667eea;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .coordinate-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
     </style>
+    <script>
+        function toggleCoordinates() {
+            const coordGroup = document.getElementById('coordinates-group');
+            const toggleText = document.getElementById('coord-toggle');
+            
+            if (coordGroup.style.display === 'none') {
+                coordGroup.style.display = 'block';
+                toggleText.textContent = 'Hide coordinates input';
+            } else {
+                coordGroup.style.display = 'none';
+                toggleText.textContent = 'Use coordinates instead';
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -116,15 +145,32 @@
             </div>
             
             <div class="form-group">
-                <label for="birth_location">Time Zone (optional)</label>
-                <select id="birth_location" name="birth_location">
+                <label for="birth_city">Birth Location</label>
+                <input type="text" id="birth_city" name="birth_city" placeholder="City, Country (e.g., New York, USA)" required>
+                <small style="color: #666; font-size: 0.8rem;">Enter your birth city for accurate rising sign calculation</small>
+                <span id="coord-toggle" class="toggle-link" onclick="toggleCoordinates()">Use coordinates instead</span>
+            </div>
+            
+            <div class="form-group" style="display: none;" id="coordinates-group">
+                <label>Coordinates (Advanced)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="latitude" name="latitude" step="0.000001" placeholder="Latitude" style="flex: 1;">
+                    <input type="number" id="longitude" name="longitude" step="0.000001" placeholder="Longitude" style="flex: 1;">
+                </div>
+                <small style="color: #666; font-size: 0.8rem;">Optional: Enter coordinates directly</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="timezone">Time Zone</label>
+                <select id="timezone" name="timezone">
                     <option value="UTC">UTC (Universal)</option>
-                    <option value="EST">Eastern (US)</option>
-                    <option value="PST">Pacific (US)</option>
-                    <option value="GMT">Greenwich Mean Time</option>
-                    <option value="CET">Central European</option>
-                    <option value="JST">Japan Standard</option>
-                    <option value="IST">India Standard</option>
+                    <option value="America/New_York">Eastern Time (US)</option>
+                    <option value="America/Los_Angeles">Pacific Time (US)</option>
+                    <option value="Europe/London">Greenwich Mean Time</option>
+                    <option value="Europe/Paris">Central European Time</option>
+                    <option value="Asia/Tokyo">Japan Standard Time</option>
+                    <option value="Asia/Kolkata">India Standard Time</option>
+                    <option value="Australia/Sydney">Australian Eastern Time</option>
                 </select>
             </div>
             
