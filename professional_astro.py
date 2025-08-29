@@ -483,7 +483,8 @@ class ProfessionalAstrologyEngine:
                 'precision': 'error'
             })
         
-        return predictionsfrom datetime import datetime, timezone
+        return predictions
+        from datetime import datetime, timezone
 import math
 
 # Import our enhanced engine
