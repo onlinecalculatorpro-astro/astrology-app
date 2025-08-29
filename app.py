@@ -15,7 +15,10 @@ def calculate_chart():
         # Get form data
         birth_date = request.form.get('birth_date')
         birth_time = request.form.get('birth_time')
-        birth_location = request.form.get('birth_location', 'UTC')
+        birth_city = request.form.get('birth_city')
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+        timezone = request.form.get('timezone', 'UTC')
         
         # Parse date and time
         birth_datetime_str = f"{birth_date} {birth_time}"
@@ -24,15 +27,24 @@ def calculate_chart():
         # Create calculator instance
         calc = AstrologyCalculator()
         
+        # Get coordinates - use provided coordinates or geocode city
+        if latitude and longitude:
+            lat, lon = float(latitude), float(longitude)
+            location_name = f"{lat:.3f}, {lon:.3f}"
+        else:
+            # For now, use simplified geocoding (you can enhance this later)
+            lat, lon, location_name = calc.get_coordinates_for_city(birth_city)
+        
         # Calculate astrology data
         sun_sign = calc.get_sun_sign(birth_datetime)
         moon_sign = calc.get_moon_sign(birth_datetime)
-        ascendant = calc.get_ascendant(birth_datetime)
+        ascendant = calc.get_ascendant(birth_datetime, lat, lon, timezone)
         planetary_positions = calc.get_planetary_positions(birth_datetime)
         
         chart_data = {
             'birth_date': birth_date,
             'birth_time': birth_time,
+            'birth_location': location_name,
             'sun_sign': sun_sign,
             'moon_sign': moon_sign,
             'ascendant': ascendant,
