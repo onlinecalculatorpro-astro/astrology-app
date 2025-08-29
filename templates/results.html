@@ -156,31 +156,34 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🌟 Your Birth Chart</div>
+            <div class="logo">Your Birth Chart</div>
         </div>
         
         <div class="birth-info">
             <h2>Born on {{ chart.birth_date }} at {{ chart.birth_time }}</h2>
-            <p style="margin-top: 10px; opacity: 0.9;">📍 {{ chart.birth_location }}</p>
+            <p style="margin-top: 10px; opacity: 0.9;">{{ chart.birth_location }}</p>
+            {% if chart.coordinates %}
+            <p style="margin-top: 5px; opacity: 0.7; font-size: 0.9rem;">{{ chart.coordinates }}</p>
+            {% endif %}
         </div>
         
         <div class="big-three">
             <div class="sign-card">
-                <div class="sign-label">☀️ Sun Sign</div>
+                <div class="sign-label">Sun Sign</div>
                 <div class="sign-value">{{ chart.sun_sign }}</div>
             </div>
             <div class="sign-card">
-                <div class="sign-label">🌙 Moon Sign</div>
+                <div class="sign-label">Moon Sign</div>
                 <div class="sign-value">{{ chart.moon_sign }}</div>
             </div>
             <div class="sign-card">
-                <div class="sign-label">↗️ Rising Sign</div>
+                <div class="sign-label">Rising Sign</div>
                 <div class="sign-value">{{ chart.ascendant }}</div>
             </div>
         </div>
         
         <div class="chart-section">
-            <div class="section-title">🪐 Planetary Positions</div>
+            <div class="section-title">Planetary Positions</div>
             <div class="planets-grid">
                 {% for planet, sign in chart.planets.items() %}
                 <div class="planet-card">
@@ -192,14 +195,14 @@
         </div>
         
         <div class="chart-section">
-            <div class="section-title">📖 Quick Interpretation</div>
+            <div class="section-title">Quick Interpretation</div>
             <p><strong>Your Sun in {{ chart.sun_sign }}</strong> represents your core identity and life purpose.</p>
             <p><strong>Your Moon in {{ chart.moon_sign }}</strong> reflects your emotional nature and inner self.</p>
             <p><strong>Your Rising sign</strong> shows how others perceive you and your approach to life.</p>
         </div>
         
         <div class="center">
-            <a href="/" class="back-btn">✨ Calculate Another Chart</a>
+            <a href="/" class="back-btn">Calculate Another Chart</a>
         </div>
     </div>
 </body>
