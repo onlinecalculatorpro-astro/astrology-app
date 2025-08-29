@@ -1,122 +1,536 @@
-<script>
-    function showTab(tabId) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Birth Chart Analysis - AstroApp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        // Show selected tab
-        document.getElementById(tabId).classList.add('active');
-        event.target.classList.add('active');
-    }
-    
-    function getPredictions() {
-        const button = event.target;
-        const originalText = button.textContent;
-        
-        // Show loading state
-        button.textContent = 'Generating Predictions...';
-        button.disabled = true;
-        
-        // Prepare birth chart data from the current page
-        const birthChart = {
-            birth_chart: {
-                planets: {
-                    sun: { longitude: parseFloat('{{ chart.planets.sun.longitude if chart.planets and chart.planets.sun else "0" }}') },
-                    moon: { longitude: parseFloat('{{ chart.planets.moon.longitude if chart.planets and chart.planets.moon else "0" }}') }
-                },
-                sun_sign: '{{ chart.sun_sign or "" }}',
-                moon_sign: '{{ chart.moon_sign or "" }}'
-            },
-            prediction_date: new Date().toISOString().split('T')[0]
-        };
-        
-        // Make AJAX request to predictions endpoint
-        fetch('/predictions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(birthChart)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                displayPredictions(data.predictions, data.prediction_date);
-            } else {
-                showPredictionError(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showPredictionError('Unable to generate predictions. Please try again.');
-        })
-        .finally(() => {
-            // Restore button state
-            button.textContent = originalText;
-            button.disabled = false;
-        });
-    }
-    
-    function displayPredictions(predictions, predictionDate) {
-        const predictionsSection = document.querySelector('.predictions-section');
-        
-        // Create predictions display
-        let predictionsHTML = `
-            <div class="section-title">Current Predictions (${predictionDate})</div>
-            <div class="predictions-list">
-        `;
-        
-        predictions.forEach(prediction => {
-            const strengthClass = prediction.strength === 'strong' ? 'strong-prediction' : 'moderate-prediction';
-            predictionsHTML += `
-                <div class="prediction-item ${strengthClass}">
-                    <div class="prediction-description"><strong>${prediction.description}</strong></div>
-                    <div class="prediction-interpretation">${prediction.interpretation}</div>
-                    <div class="prediction-meta">Type: ${prediction.type} | Strength: ${prediction.strength}</div>
-                </div>
-            `;
-        });
-        
-        predictionsHTML += '</div>';
-        
-        // Replace the predictions section content
-        predictionsSection.innerHTML = predictionsHTML;
-        
-        // Add styles for predictions if not already present
-        if (!document.getElementById('predictions-styles')) {
-            const style = document.createElement('style');
-            style.id = 'predictions-styles';
-            style.textContent = `
-                .predictions-list { margin-top: 15px; }
-                .prediction-item { 
-                    background: white; 
-                    padding: 15px; 
-                    margin-bottom: 10px; 
-                    border-radius: 8px; 
-                    border-left: 4px solid #ffa500; 
-                }
-                .strong-prediction { border-left-color: #ff6b35; }
-                .moderate-prediction { border-left-color: #4ecdc4; }
-                .prediction-description { font-weight: bold; color: #333; margin-bottom: 8px; }
-                .prediction-interpretation { color: #666; margin-bottom: 5px; }
-                .prediction-meta { font-size: 0.8rem; color: #999; }
-            `;
-            document.head.appendChild(style);
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-    }
-    
-    function showPredictionError(errorMessage) {
-        const predictionsSection = document.querySelector('.predictions-section');
-        predictionsSection.innerHTML = `
-            <div class="section-title">Predictions Error</div>
-            <div class="prediction-item" style="border-left-color: #dc3545;">
-                <div class="prediction-description">Unable to Generate Predictions</div>
-                <div class="prediction-interpretation">${errorMessage}</div>
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .professional-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .birth-info {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .chart-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .big-three {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .sign-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .sign-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .sign-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .sign-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .sign-details {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .planets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+        
+        .planet-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+            transition: border-color 0.3s;
+        }
+        
+        .planet-card:hover {
+            border-color: #667eea;
+        }
+        
+        .planet-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .planet-sign {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .planet-degrees {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .houses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        
+        .house-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .house-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        
+        .house-sign {
+            font-size: 0.8rem;
+            color: #333;
+        }
+        
+        .aspects-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .aspect-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .aspect-description {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .aspect-orb {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .method-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            color: #2c5aa0;
+        }
+        
+        .predictions-section {
+            background: #fff9e6;
+            border-left: 5px solid #ffa500;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+        
+        .prediction-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ffa500;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .center {
+            text-align: center;
+        }
+        
+        .tab-container {
+            margin-top: 30px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        .predictions-list { 
+            margin-top: 15px; 
+        }
+        
+        .strong-prediction { 
+            border-left-color: #ff6b35; 
+        }
+        
+        .moderate-prediction { 
+            border-left-color: #4ecdc4; 
+        }
+        
+        .prediction-description { 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 8px; 
+        }
+        
+        .prediction-interpretation { 
+            color: #666; 
+            margin-bottom: 5px; 
+        }
+        
+        .prediction-meta { 
+            font-size: 0.8rem; 
+            color: #999; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Professional Birth Chart Analysis</div>
+            <div class="professional-badge">Swiss Ephemeris • Professional Grade</div>
+        </div>
+        
+        <div class="birth-info">
+            <h2>Born on {{ chart.birth_date }} at {{ chart.birth_time }}</h2>
+            <p style="margin-top: 10px; opacity: 0.9;">{{ chart.birth_location }}</p>
+            {% if chart.coordinates %}
+            <p style="margin-top: 5px; opacity: 0.7; font-size: 0.9rem;">{{ chart.coordinates }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="method-info">
+            <strong>Calculation Method:</strong> {{ chart.calculation_method or "Swiss Ephemeris (Professional)" }}
+            {% if chart.house_system %}
+            <br><strong>House System:</strong> {{ chart.house_system }}
+            {% endif %}
+        </div>
+        
+        <div class="big-three">
+            <div class="sign-card">
+                <div class="sign-label">Sun Sign</div>
+                <div class="sign-value">{{ chart.sun_sign or "Calculating..." }}</div>
+                {% if chart.planets and chart.planets.sun %}
+                <div class="sign-details">{{ chart.planets.sun.formatted or "" }}</div>
+                {% endif %}
             </div>
-        `;
-    }
-</script>
+            <div class="sign-card">
+                <div class="sign-label">Moon Sign</div>
+                <div class="sign-value">{{ chart.moon_sign or "Calculating..." }}</div>
+                {% if chart.planets and chart.planets.moon %}
+                <div class="sign-details">{{ chart.planets.moon.formatted or "" }}</div>
+                {% endif %}
+            </div>
+            <div class="sign-card">
+                <div class="sign-label">Rising Sign</div>
+                <div class="sign-value">{{ chart.ascendant or "Calculating..." }}</div>
+                <div class="sign-details">Ascendant</div>
+            </div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('planets-tab')">Planetary Positions</button>
+                {% if chart.houses and chart.houses|length > 0 %}
+                <button class="tab-button" onclick="showTab('houses-tab')">House Cusps</button>
+                {% endif %}
+                {% if chart.aspects and chart.aspects|length > 0 %}
+                <button class="tab-button" onclick="showTab('aspects-tab')">Major Aspects</button>
+                {% endif %}
+                <button class="tab-button" onclick="showTab('interpretation-tab')">Interpretation</button>
+            </div>
+            
+            <div id="planets-tab" class="tab-content active">
+                <div class="chart-section">
+                    <div class="section-title">Planetary Positions</div>
+                    {% if chart.planets %}
+                    <div class="planets-grid">
+                        {% for planet_key, planet_data in chart.planets.items() %}
+                        <div class="planet-card">
+                            <div class="planet-name">{{ planet_data.name or planet_key.title() }}</div>
+                            <div class="planet-sign">{{ planet_data.sign or "Unknown" }}</div>
+                            {% if planet_data.formatted %}
+                            <div class="planet-degrees">{{ planet_data.formatted }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>Planetary calculations in progress...</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if chart.houses and chart.houses|length > 0 %}
+            <div id="houses-tab" class="tab-content">
+                <div class="chart-section">
+                    <div class="section-title">House Cusps ({{ chart.house_system or "Placidus" }})</div>
+                    <div class="houses-grid">
+                        {% for house in chart.houses %}
+                        <div class="house-card">
+                            <div class="house-number">House {{ house.house }}</div>
+                            <div class="house-sign">{{ house.sign }}</div>
+                            {% if house.degrees %}
+                            <div class="planet-degrees">{{ house.degrees|round(1) }}°</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if chart.aspects and chart.aspects|length > 0 %}
+            <div id="aspects-tab" class="tab-content">
+                <div class="chart-section">
+                    <div class="section-title">Major Aspects</div>
+                    <div class="aspects-list">
+                        {% for aspect in chart.aspects %}
+                        <div class="aspect-item">
+                            <div class="aspect-description">{{ aspect.description }}</div>
+                            <div class="aspect-orb">Orb: {{ aspect.orb|round(1) }}° ({{ aspect.aspect }})</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div id="interpretation-tab" class="tab-content">
+                <div class="chart-section">
+                    <div class="section-title">Professional Interpretation</div>
+                    <p><strong>Your Sun in {{ chart.sun_sign or "Leo" }}</strong> represents your core identity, vitality, and life purpose. This is your essential self and how you express your individual will.</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Your Moon in {{ chart.moon_sign or "Taurus" }}</strong> reflects your emotional nature, instinctive reactions, and subconscious patterns. This governs your inner world and emotional security needs.</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Your Rising sign ({{ chart.ascendant or "Pisces" }})</strong> shows your persona, first impressions, and approach to new situations. This is the mask you wear and how others initially perceive you.</p>
+                    
+                    {% if chart.aspects and chart.aspects|length > 0 %}
+                    <div style="margin-top: 20px;">
+                        <strong>Key Aspect Patterns:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            {% for aspect in chart.aspects[:3] %}
+                            <li style="margin-bottom: 5px;">{{ aspect.description }} suggests {{ aspect.aspect }} energy between these planetary functions.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="predictions-section" id="predictions-section">
+                    <div class="section-title">Predictive Analysis</div>
+                    <p>Transit predictions analyze how current planetary movements affect your birth chart. Click below to generate personalized predictions based on current celestial conditions.</p>
+                    <button class="back-btn" onclick="getPredictions()">Generate Predictions</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="center">
+            <a href="/" class="back-btn">Calculate Another Chart</a>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function getPredictions() {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = 'Generating Predictions...';
+            button.disabled = true;
+            
+            const requestData = {
+                birth_chart: {
+                    sun_sign: '{{ chart.sun_sign|default("Aries")|safe }}',
+                    moon_sign: '{{ chart.moon_sign|default("Aries")|safe }}'
+                },
+                prediction_date: new Date().toISOString().split('T')[0]
+            };
+            
+            fetch('/predictions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.predictions) {
+                    displayPredictions(data.predictions, data.prediction_date);
+                } else {
+                    showPredictionError(data.error || 'Unable to generate predictions');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPredictionError('Network error occurred. Please try again.');
+            })
+            .finally(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        function displayPredictions(predictions, predictionDate) {
+            const predictionsSection = document.getElementById('predictions-section');
+            
+            let predictionsHTML = '<div class="section-title">Current Predictions (' + predictionDate + ')</div>';
+            predictionsHTML += '<div class="predictions-list">';
+            
+            predictions.forEach(prediction => {
+                const strengthClass = prediction.strength === 'strong' ? 'strong-prediction' : 'moderate-prediction';
+                predictionsHTML += '<div class="prediction-item ' + strengthClass + '">';
+                predictionsHTML += '<div class="prediction-description">' + prediction.description + '</div>';
+                predictionsHTML += '<div class="prediction-interpretation">' + prediction.interpretation + '</div>';
+                predictionsHTML += '<div class="prediction-meta">Type: ' + prediction.type + ' | Strength: ' + prediction.strength + '</div>';
+                predictionsHTML += '</div>';
+            });
+            
+            predictionsHTML += '</div>';
+            predictionsSection.innerHTML = predictionsHTML;
+        }
+        
+        function showPredictionError(errorMessage) {
+            const predictionsSection = document.getElementById('predictions-section');
+            predictionsSection.innerHTML = '<div class="section-title">Predictions Error</div>' +
+                '<div class="prediction-item" style="border-left-color: #dc3545;">' +
+                '<div class="prediction-description">Unable to Generate Predictions</div>' +
+                '<div class="prediction-interpretation">' + errorMessage + '</div>' +
+                '</div>';
+        }
+    </script>
+</body>
+</html>
