@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroApp - Your Personal Astrology Calculator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .zodiac-icons {
+            margin: 30px 0;
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌟 AstroApp</div>
+        <p class="subtitle">Discover your cosmic blueprint</p>
+        
+        <form action="/calculate" method="POST">
+            <div class="form-group">
+                <label for="birth_date">Birth Date</label>
+                <input type="date" id="birth_date" name="birth_date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birth_time">Birth Time</label>
+                <input type="time" id="birth_time" name="birth_time" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birth_location">Time Zone (optional)</label>
+                <select id="birth_location" name="birth_location">
+                    <option value="UTC">UTC (Universal)</option>
+                    <option value="EST">Eastern (US)</option>
+                    <option value="PST">Pacific (US)</option>
+                    <option value="GMT">Greenwich Mean Time</option>
+                    <option value="CET">Central European</option>
+                    <option value="JST">Japan Standard</option>
+                    <option value="IST">India Standard</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn">✨ Calculate My Chart</button>
+        </form>
+        
+        <div class="zodiac-icons">
+            ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
+        </div>
+        
+        <p class="info-text">
+            Get your personalized birth chart with sun, moon, and planetary positions!
+        </p>
+    </div>
+</body>
+</html>
