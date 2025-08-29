@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, render_template_string
 from datetime import datetime, timezone
 import pytz
 from professional_astro import ProfessionalAstrologyEngine
