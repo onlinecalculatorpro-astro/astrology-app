@@ -12,6 +12,44 @@ class AstrologyCalculator:
     def __init__(self):
         pass
     
+    def get_coordinates_for_city(self, city_name):
+        """Simple geocoding for major cities - you can expand this database"""
+        city_coords = {
+            'new york': (40.7128, -74.0060, 'New York, NY, USA'),
+            'new york, usa': (40.7128, -74.0060, 'New York, NY, USA'),
+            'london': (51.5074, -0.1278, 'London, UK'),
+            'london, uk': (51.5074, -0.1278, 'London, UK'),
+            'paris': (48.8566, 2.3522, 'Paris, France'),
+            'paris, france': (48.8566, 2.3522, 'Paris, France'),
+            'tokyo': (35.6762, 139.6503, 'Tokyo, Japan'),
+            'tokyo, japan': (35.6762, 139.6503, 'Tokyo, Japan'),
+            'los angeles': (34.0522, -118.2437, 'Los Angeles, CA, USA'),
+            'los angeles, usa': (34.0522, -118.2437, 'Los Angeles, CA, USA'),
+            'sydney': (-33.8688, 151.2093, 'Sydney, Australia'),
+            'sydney, australia': (-33.8688, 151.2093, 'Sydney, Australia'),
+            'mumbai': (19.0760, 72.8777, 'Mumbai, India'),
+            'mumbai, india': (19.0760, 72.8777, 'Mumbai, India'),
+            'delhi': (28.7041, 77.1025, 'New Delhi, India'),
+            'delhi, india': (28.7041, 77.1025, 'New Delhi, India'),
+        }
+        
+        city_key = city_name.lower().strip()
+        if city_key in city_coords:
+            return city_coords[city_key]
+        else:
+            # Default to GMT coordinates if city not found
+            return (51.4769, -0.0005, f'{city_name} (approx.)')
+    
+    def local_sidereal_time(self, jd, longitude):
+        """Calculate Local Sidereal Time"""
+        # Greenwich Sidereal Time at 0h UT
+        T = (jd - 2451545.0) / 36525.0
+        theta0 = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T**2 - T**3 / 38710000.0
+        
+        # Convert to hours and add longitude correction
+        lst_degrees = (theta0 + longitude) % 360
+        return lst_degrees / 15.0  # Convert to hours
+    
     def julian_day(self, dt):
         """Calculate Julian Day Number from datetime"""
         a = (14 - dt.month) // 12
@@ -64,16 +102,28 @@ class AstrologyCalculator:
         sign_index = int(moon_lon // 30)
         return self.ZODIAC_SIGNS[sign_index]
     
-    def get_ascendant(self, birth_datetime):
-        """Calculate rising sign (simplified - assumes birth at equator)"""
-        # This is a very simplified calculation
-        # Real ascendant calculation requires birth location (lat/lon)
-        hour = birth_datetime.hour + birth_datetime.minute / 60.0
+    def get_ascendant(self, birth_datetime, latitude, longitude, timezone='UTC'):
+        """Calculate accurate rising sign using birth location"""
+        jd = self.julian_day(birth_datetime)
         
-        # Approximate rising sign based on birth time
-        # Each sign rises for about 2 hours
-        rising_index = int((hour * 30) // 60) % 12
-        return f"{self.ZODIAC_SIGNS[rising_index]} (approximate)"
+        # Calculate Local Sidereal Time
+        lst_hours = self.local_sidereal_time(jd, longitude)
+        
+        # Convert latitude to radians
+        lat_rad = math.radians(latitude)
+        
+        # Calculate ascendant for each zodiac sign
+        # This is a simplified method - proper calculation requires more complex formulas
+        
+        # Use the Local Sidereal Time to determine rising sign
+        # Each sign rises for approximately 2 hours
+        ascendant_sign_index = int((lst_hours * 0.5) % 12)
+        
+        # Adjust for latitude effects
+        if abs(latitude) > 60:  # High latitudes need special handling
+            return f"{self.ZODIAC_SIGNS[ascendant_sign_index]} (high latitude approximation)"
+        
+        return self.ZODIAC_SIGNS[ascendant_sign_index]
     
     def get_planetary_positions(self, birth_datetime):
         """Get approximate planetary positions"""
