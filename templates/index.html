@@ -112,6 +112,19 @@
             gap: 10px;
             margin-top: 5px;
         }
+        
+        .loading {
+            display: none;
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
     <script>
         function toggleCoordinates() {
@@ -126,6 +139,17 @@
                 toggleText.textContent = 'Use coordinates instead';
             }
         }
+        
+        function showLoading() {
+            const btn = document.querySelector('.btn');
+            const loading = document.getElementById('loading');
+            
+            btn.disabled = true;
+            btn.textContent = '🌍 Finding Location...';
+            loading.style.display = 'block';
+            
+            return true; // Allow form submission
+        }
     </script>
 </head>
 <body>
@@ -133,7 +157,7 @@
         <div class="logo">🌟 AstroApp</div>
         <p class="subtitle">Discover your cosmic blueprint</p>
         
-        <form action="/calculate" method="POST">
+        <form action="/calculate" method="POST" onsubmit="return showLoading()">
             <div class="form-group">
                 <label for="birth_date">Birth Date</label>
                 <input type="date" id="birth_date" name="birth_date" required>
@@ -146,8 +170,11 @@
             
             <div class="form-group">
                 <label for="birth_city">Birth Location</label>
-                <input type="text" id="birth_city" name="birth_city" placeholder="City, Country (e.g., New York, USA)" required>
-                <small style="color: #666; font-size: 0.8rem;">Enter your birth city for accurate rising sign calculation</small>
+                <input type="text" id="birth_city" name="birth_city" placeholder="City, State/Province, Country (e.g., Mumbai, India)" required>
+                <small style="color: #666; font-size: 0.8rem;">
+                    Enter any city worldwide for accurate rising sign calculation<br>
+                    Examples: Tokyo, Japan • London, UK • São Paulo, Brazil • Lagos, Nigeria
+                </small>
                 <span id="coord-toggle" class="toggle-link" onclick="toggleCoordinates()">Use coordinates instead</span>
             </div>
             
@@ -157,7 +184,7 @@
                     <input type="number" id="latitude" name="latitude" step="0.000001" placeholder="Latitude" style="flex: 1;">
                     <input type="number" id="longitude" name="longitude" step="0.000001" placeholder="Longitude" style="flex: 1;">
                 </div>
-                <small style="color: #666; font-size: 0.8rem;">Optional: Enter coordinates directly</small>
+                <small style="color: #666; font-size: 0.8rem;">Optional: Enter coordinates directly (Lat: -90 to 90, Lon: -180 to 180)</small>
             </div>
             
             <div class="form-group">
@@ -172,6 +199,10 @@
                     <option value="Asia/Kolkata">India Standard Time</option>
                     <option value="Australia/Sydney">Australian Eastern Time</option>
                 </select>
+            </div>
+            
+            <div id="loading" class="loading">
+                Looking up your location coordinates...
             </div>
             
             <button type="submit" class="btn">✨ Calculate My Chart</button>
