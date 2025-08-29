@@ -13,7 +13,51 @@ class AstrologyCalculator:
         pass
     
     def get_coordinates_for_city(self, city_name):
-        """Simple geocoding for major cities - you can expand this database"""
+        """Get coordinates for any city worldwide using Nominatim (OpenStreetMap)"""
+        import requests
+        import time
+        
+        try:
+            # Use Nominatim API for worldwide geocoding
+            url = "https://nominatim.openstreetmap.org/search"
+            params = {
+                'q': city_name,
+                'format': 'json',
+                'limit': 1,
+                'addressdetails': 1
+            }
+            
+            headers = {
+                'User-Agent': 'AstroApp/1.0 (astrology birth chart calculator)'
+            }
+            
+            response = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data:
+                    result = data[0]
+                    lat = float(result['lat'])
+                    lon = float(result['lon'])
+                    
+                    # Extract clean location name
+                    display_name = result.get('display_name', city_name)
+                    # Simplify the display name (take first 3 parts usually covers city, state, country)
+                    location_parts = display_name.split(', ')[:3]
+                    clean_name = ', '.join(location_parts)
+                    
+                    return (lat, lon, clean_name)
+            
+            # If API fails, fall back to local database
+            return self._fallback_city_lookup(city_name)
+            
+        except Exception as e:
+            # If anything goes wrong, use fallback
+            return self._fallback_city_lookup(city_name)
+    
+    def _fallback_city_lookup(self, city_name):
+        """Fallback to local city database if API fails"""
         city_coords = {
             'new york': (40.7128, -74.0060, 'New York, NY, USA'),
             'new york, usa': (40.7128, -74.0060, 'New York, NY, USA'),
@@ -31,14 +75,42 @@ class AstrologyCalculator:
             'mumbai, india': (19.0760, 72.8777, 'Mumbai, India'),
             'delhi': (28.7041, 77.1025, 'New Delhi, India'),
             'delhi, india': (28.7041, 77.1025, 'New Delhi, India'),
+            'patna': (25.5941, 85.1376, 'Patna, Bihar, India'),
+            'patna, india': (25.5941, 85.1376, 'Patna, Bihar, India'),
+            'kolkata': (22.5726, 88.3639, 'Kolkata, West Bengal, India'),
+            'kolkata, india': (22.5726, 88.3639, 'Kolkata, West Bengal, India'),
+            'bangalore': (12.9716, 77.5946, 'Bangalore, Karnataka, India'),
+            'bangalore, india': (12.9716, 77.5946, 'Bangalore, Karnataka, India'),
+            'chennai': (13.0827, 80.2707, 'Chennai, Tamil Nadu, India'),
+            'chennai, india': (13.0827, 80.2707, 'Chennai, Tamil Nadu, India'),
+            'dhaka': (23.8103, 90.4125, 'Dhaka, Bangladesh'),
+            'dhaka, bangladesh': (23.8103, 90.4125, 'Dhaka, Bangladesh'),
+            'karachi': (24.8607, 67.0011, 'Karachi, Pakistan'),
+            'karachi, pakistan': (24.8607, 67.0011, 'Karachi, Pakistan'),
+            'lahore': (31.5804, 74.3587, 'Lahore, Pakistan'),
+            'lahore, pakistan': (31.5804, 74.3587, 'Lahore, Pakistan'),
+            'cairo': (30.0444, 31.2357, 'Cairo, Egypt'),
+            'cairo, egypt': (30.0444, 31.2357, 'Cairo, Egypt'),
+            'beijing': (39.9042, 116.4074, 'Beijing, China'),
+            'beijing, china': (39.9042, 116.4074, 'Beijing, China'),
+            'shanghai': (31.2304, 121.4737, 'Shanghai, China'),
+            'shanghai, china': (31.2304, 121.4737, 'Shanghai, China'),
+            'moscow': (55.7558, 37.6173, 'Moscow, Russia'),
+            'moscow, russia': (55.7558, 37.6173, 'Moscow, Russia'),
+            'lagos': (6.5244, 3.3792, 'Lagos, Nigeria'),
+            'lagos, nigeria': (6.5244, 3.3792, 'Lagos, Nigeria'),
+            'sao paulo': (-23.5558, -46.6396, 'São Paulo, Brazil'),
+            'sao paulo, brazil': (-23.5558, -46.6396, 'São Paulo, Brazil'),
+            'mexico city': (19.4326, -99.1332, 'Mexico City, Mexico'),
+            'mexico city, mexico': (19.4326, -99.1332, 'Mexico City, Mexico'),
         }
         
         city_key = city_name.lower().strip()
         if city_key in city_coords:
             return city_coords[city_key]
         else:
-            # Default to GMT coordinates if city not found
-            return (51.4769, -0.0005, f'{city_name} (approx.)')
+            # Default to approximate location if not found
+            return (0.0, 0.0, f'{city_name} (location not found - using default)')
     
     def local_sidereal_time(self, jd, longitude):
         """Calculate Local Sidereal Time"""
