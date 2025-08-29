@@ -161,6 +161,7 @@
         
         <div class="birth-info">
             <h2>Born on {{ chart.birth_date }} at {{ chart.birth_time }}</h2>
+            <p style="margin-top: 10px; opacity: 0.9;">📍 {{ chart.birth_location }}</p>
         </div>
         
         <div class="big-three">
@@ -173,7 +174,7 @@
                 <div class="sign-value">{{ chart.moon_sign }}</div>
             </div>
             <div class="sign-card">
-                <div class="sign-label">⬆️ Rising Sign</div>
+                <div class="sign-label">↗️ Rising Sign</div>
                 <div class="sign-value">{{ chart.ascendant }}</div>
             </div>
         </div>
